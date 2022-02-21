@@ -1,5 +1,8 @@
 package com.java.designpattern.creational;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 class SingletonEagerLoading
 {
 	private static SingletonEagerLoading eagerClass = new SingletonEagerLoading();
@@ -61,10 +64,14 @@ class SingletonHolderPattern
 	{
 		static SingletonHolderPattern SINGLETON_HOLDER_INSTANCE = new SingletonHolderPattern();
 	}
-	public static synchronized SingletonHolderPattern getInstance()// To make it Thread Safe
+	public static SingletonHolderPattern getInstance()//No Need To add Synchronized
 	{
 		return SingletonHolder.SINGLETON_HOLDER_INSTANCE;
 	}
+}
+enum SingletonEnum
+{
+	INSTANCE;
 }
 public class Singleton 
 {
@@ -93,6 +100,38 @@ public class Singleton
 		System.out.println(SingletonHolderPattern.getInstance());
 		System.out.println(SingletonHolderPattern.getInstance());
 	}
+	private static void breakSingleton()
+	{
+		try 
+		{
+			System.out.println("Break Singleton Loading");
+			Constructor cons = SingletonEagerLoading.class.getDeclaredConstructor();
+			cons.setAccessible(true);
+			try 
+			{
+				System.out.println(SingletonEagerLoading.getInstance());
+				SingletonEagerLoading  breakClass =  (SingletonEagerLoading) cons.newInstance();
+				System.out.println(breakClass);
+				
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		} 
+		catch (NoSuchMethodException | SecurityException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	private static void EnumSingleton()
+	{
+		System.out.println("Preventing Singleton Breaking by Enum Loading");// Drawback cannot do lazy loading
+		System.out.println(SingletonEnum.INSTANCE.hashCode());
+		System.out.println(SingletonEnum.INSTANCE.hashCode());
+	}
 	public static void main(String args[])
 	{
 		SingletonEager();
@@ -102,5 +141,9 @@ public class Singleton
 		SingletonLazy();
 		System.out.println();
 		SingletonHolder();
+		System.out.println();
+		breakSingleton();
+		System.out.println();
+		EnumSingleton();
 	}
 }
