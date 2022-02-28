@@ -1,5 +1,6 @@
 package com.java.designpattern.creational;
 
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
@@ -38,8 +39,9 @@ class SingletonStaticLoading // We can manage Exception
 		return staticClass;
 	}
 }
-class SingletonLazyLoading
+class SingletonLazyLoading implements Serializable,Cloneable
 {
+	private static final long serialVersionUID = 1L;
 	private static SingletonLazyLoading lazyClass = null;
 	private SingletonLazyLoading()
 	{
@@ -53,6 +55,17 @@ class SingletonLazyLoading
 		}
 		return lazyClass;
 	}
+	// Will preventing Hashcode change during serailization process
+	private Object readResolve()
+	{
+		 return getInstance();
+	}
+	@Override
+	protected Object clone() throws CloneNotSupportedException // Preventing Singleton from Cloning
+	{
+		throw new CloneNotSupportedException("You cannot create Clone of Singleton object");
+	}
+	
 }
 class SingletonHolderPattern
 {
@@ -115,14 +128,12 @@ public class Singleton
 				
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
 		} 
 		catch (NoSuchMethodException | SecurityException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -132,7 +143,36 @@ public class Singleton
 		System.out.println(SingletonEnum.INSTANCE.hashCode());
 		System.out.println(SingletonEnum.INSTANCE.hashCode());
 	}
-	public static void main(String args[])
+	public static void serializeSingleton() throws CloneNotSupportedException
+	{
+		System.out.println("Serialize Singleton Loading");
+		SingletonLazyLoading lazyLoading = SingletonLazyLoading.getInstance();
+	//	SingletonLazyLoading lazyLoading1 = (SingletonLazyLoading) lazyLoading.clone();
+		System.out.println("Before Serailization ["+lazyLoading+"]");
+		//Serialize
+		try
+		{
+			ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream("serialize.ser"));
+			outputStream.writeObject(lazyLoading);
+			outputStream.flush();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		//Deserialize
+		try
+		{
+			ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream("serialize.ser"));
+			lazyLoading = (SingletonLazyLoading)inputStream.readObject();	
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		System.out.println("After Serailization ["+lazyLoading+"]");
+	}
+	public static void main(String args[]) throws CloneNotSupportedException
 	{
 		SingletonEager();
 		System.out.println();
@@ -145,5 +185,8 @@ public class Singleton
 		breakSingleton();
 		System.out.println();
 		EnumSingleton();
+		System.out.println();
+		serializeSingleton();
 	}
+	
 }
